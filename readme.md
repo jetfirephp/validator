@@ -481,7 +481,7 @@ The input is optional if it valid some condition
     'lastName' => 'optionalIf:field_value_not,firstName,Peter', 
    ```
 
-#### skip
+#### skipIf
 
 Skip the input rules if it valid some condition
 
