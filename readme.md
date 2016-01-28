@@ -17,8 +17,22 @@ Simple usage of `\JetFire\Validator\Validator` :
 ```php
 require_once __DIR__ . '/vendor/autoload.php';
 
+$response = \JetFire\Validator\Validator::isAlpha('Peter Parker');
+
+// if not valid
+if(!$response){
+    // your code
+    // ...
+}
+```
+
+If you want to validate multiple values you can do it like this :
+
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+
 $response = \JetFire\Validator\Validator::validate([
-    'Peter Parker'                    => 'alpha|length:<60',
+    'Peter Parker 1'                  => 'alpha|length:<60',
     '20'                              => 'int|max:40|min:10',
     'peter.parker@spiderman.com'      => 'email|noWhitespace',
     '+347123456789'                   => 'phone',
@@ -29,7 +43,24 @@ if($response['valid']){
     // ...
 }else{
     // $response['message'] return an array of messages for each value and rule
+    // $response['message']['_field_']['_rule_']
+    // for example the first validation will return an error because 'Petet Parker 1' doesn't contain only letters
+    // to get the return message : $response['message']['Peter Parker 1']['alpha']
 }
+```
+
+As you can see it's not very nice to set the value as a key.
+If you want to add a key for your values you have to add your key before the value, like this :
+
+```php
+$response = \JetFire\Validator\Validator::validate([
+    'name::Peter Parker 1'                    => 'alpha|length:<60',
+    'age::20'                                 => 'int|max:40|min:10',
+    'email::peter.parker@spiderman.com'       => 'email|noWhitespace',
+    'phone::+347123456789'                    => 'phone',
+    'code::11375'                             => 'postalCode:US'
+]);
+// You can get now the error message for 'Peter Parker 1' like this $response['message']['name']['alpha']
 ```
 
 ### $_POST & $_GET validation
@@ -50,7 +81,7 @@ For `$_GET` validation you have to use `\JetFire\Validator\Validator::validateGe
 
 ### Custom Message
 
-You can set your custom messages for alidation. You have to pass an array in second argument of `\JetFire\Validator\Validator::validate` :
+You can set your custom messages for validation. You have to pass an array in second argument of `\JetFire\Validator\Validator::validate` :
 
 ```php
 $response = \JetFire\Validator\Validator::validatePost([
@@ -302,6 +333,217 @@ Validates image height or width:
     'image.jpg' => 'height:>200|width:>200', // true
     'image.jpg' => 'height:200,300|width:200,300', // true
 ```
+
+#### set
+
+Validates if the input is set.
+
+```php
+    // for $_POST & $_GET
+    'firstName => 'set', // true
+    // php : if(isset($_POST['firstName'])) or if(isset($_GET['firstName'])) 
+```
+
+#### required 
+
+Check if the input is set and not empty
+
+```php
+    // for $_POST & $_GET
+    'firstName => 'required', // true
+```
+
+#### requiredIf
+ 
+The field is required if it valid some condition
+
+```php
+    // for $_POST & $_GET
+    'firstName' => 'required', // true
+    
+    // lastName is required if value1 is equal to value2
+    'lastName' => 'requiredIf:value1,value2', 
+    
+    // lastName is required if firstName is set and not empty
+    'lastName => 'requiredIf:field,firstName', 
+    
+    // lastName is required if firstName is set and empty
+    'lastName' => 'requiredIf:empty_field,firstName', 
+    
+    // lastName is required if firstName is set
+    'lastName' => 'requiredIf:field_set,firstName', 
+    
+    // lastName is required if firstName is not set
+    'lastName' => 'requiredIf:field_not_set,firstName', 
+    
+    // lastName is required if firstName value is equal to Peter
+    'lastName' => 'requiredIf:field_value,firstName,Peter', 
+    
+    // lastName is required if firstName value is not equal to Peter
+    'lastName' => 'requiredIf:field_value_not,firstName,Peter', 
+       
+```
+
+#### requiredWith
+
+The input is required with other inputs
+
+```php
+    'firstName1::Peter|lastName1::Parker' => '', 
+    'firstName2::|lastName2::Parker' => '', 
+    
+    // age is required with firstName and lastName
+    'age1::20' => 'requiredWith:firstName1,lastName1',  // true
+    'age2::20' => 'requiredWith:firstName2,lastName2',  // false firstName1 is empty
+    'age3::' => 'requiredWith:firstName1,lastName1',  // false age is empty
+```
+
+#### requiredOneOf
+
+The input is required with one of the following inputs
+
+```php
+    'firstName1::Peter|lastName1::Parker' => '', 
+    'firstName2::Peter|lastName2::' => '', 
+    'firstName3::|lastName3::' => '', 
+    
+    // age is required with one of the following inputs
+    'age1::20' => 'requiredOneOf:firstName1,lastName1',  // true
+    'age2::20' => 'requiredOneOf:firstName2,lastName2',  // true
+    'age3::20' => 'requiredOneOf:firstName3,lastName3',  // false firstName3 or lastName3 must not be empty
+    'age4::'   => 'requiredOneOf:firstName1,lastName1',  // false age is required
+```
+
+#### with
+
+The input is optional but the followings input must not be empty
+
+```php
+    'firstName1::Peter|lastName1::Parker' => '', 
+    'firstName2::Peter|lastName2::' => '', 
+    
+    // age is optional but the followings input must not be empty
+    'age1::20' => 'with:firstName1,lastName1', // true
+    'age1::'   => 'with:firstName1,lastName1', // true
+    'age2::20' => 'with:firstName2,lastName2', // false
+```
+
+#### oneOf
+
+The input is optional but one of the following input must not be empty
+
+```php
+    'firstName1::Peter|lastName1::Parker' => '', 
+    'firstName2::|lastName2::' => '', 
+    
+    // age is optional but one of the following input must not be empty
+    'age1::20' => 'with:firstName1,lastName1', // true
+    'age1::'   => 'with:firstName1,lastName1', // true
+    'age2::20' => 'with:firstName2,lastName2', // false
+```
+
+#### optional
+
+The input is optional and the following rules are not execute if the input is empty
+
+```php
+    'firstName::' => 'optional|alpha|length:<20', // true
+    'firstName::Peter' => 'optional|alpha|length:<20', // true
+    'firstName::Peter 2' => 'optional|alpha|length:<20', // false
+```
+
+#### optionalIf
+
+The input is optional if it valid some condition
+
+```php
+    'firstName::Peter' => '',
+    
+    // lastName is optional if value1 is equal to value2
+    'lastName' => 'optionalIf:value1,value2', 
+        
+    // lastName is optional if firstName is set and not empty
+    'lastName => 'optionalIf:field,firstName', 
+    
+    // lastName is optional if firstName is set and empty
+    'lastName' => 'optionalIf:empty_field,firstName', 
+    
+    // lastName is optional if firstName is set
+    'lastName' => 'optionalIf:field_set,firstName', 
+    
+    // lastName is optional if firstName is not set
+    'lastName' => 'optionalIf:field_not_set,firstName', 
+    
+    // lastName is optional if firstName value is equal to Peter
+    'lastName' => 'optionalIf:field_value,firstName,Peter', 
+    
+    // lastName is optional if firstName value is not equal to Peter
+    'lastName' => 'optionalIf:field_value_not,firstName,Peter', 
+   ```
+
+#### skip
+
+Skip the input rules if it valid some condition
+
+```php
+    'firstName::Peter' => '',
+        
+    // skip lastName if value1 is equal to value2
+    'lastName' => 'skipIf:value1,value2', 
+        
+    // skip lastName  if firstName is set and not empty
+    'lastName => 'skipIf:field,firstName', 
+    
+    // skip lastName  if firstName is set and empty
+    'lastName' => 'skipIf:empty_field,firstName', 
+    
+    // skip lastName  if firstName is set
+    'lastName' => 'skipIf:field_set,firstName', 
+    
+    // skip lastName  if firstName is not set
+    'lastName' => 'skipIf:field_not_set,firstName', 
+    
+    // skip lastName  if firstName value is equal to Peter
+    'lastName' => 'skipIf:field_value,firstName,Peter', 
+    
+    // skip lastName  if firstName value is not equal to Peter
+    'lastName' => 'skipIf:field_value_not,firstName,Peter', 
+```
+
+### Assignation
+
+#### add
+
+```php
+     'name1::Peter' => 'add:end,Parker', // name1 = Peter Parker
+     'name2::Parker' => 'add:begin,Peter', // name2 = Peter Parker
+ ```
+ 
+#### assign
+
+```php
+     // you can modify your input value with a crypt function
+     'password::Peter' => 'assign:crypt,password_hash', // password = password_hash('Peter', PASSWORD_BCRYPT);
+     // you can use other crypt function like md5, sha5 ..
+        
+     
+     // change your input value 
+     'name::Parker' => 'assign:Peter', // name = Peter
+     // or
+     'name::Parker' => 'assign:value,Peter', // name = Peter
+     
+     // change your input value with another input value
+     'firstName::Peter' => '',
+     'lastName::Parker' => 'assign:field,firstName', // lastName = Peter
+     
+     // assign the file name to file input 
+     'file' => 'assign:file' 
+     
+     // assign this input value to another input
+     'firstName::Peter' => '',
+     'lastName::Parker' => 'assign:this,firstName', // firstName = Parker
+           
+ ```
 
 ### License
 

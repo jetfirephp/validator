@@ -592,7 +592,7 @@ class Validator
     }
 
     /**
-     * @description the input is required if it validate the conditions above
+     * @description the input is required if it valid the conditions above
      * @param $param
      * @param null $parameters
      * @return array|bool
@@ -790,7 +790,36 @@ class Validator
     {
         if (!empty($parameters['skipIf'])) {
             $params = explode(',', $parameters['skipIf']);
-            if ($params[0] == $params[1]) self::$skip = true;
+            switch ($param[0]) {
+                case 'field':
+                    if (isset(self::$request[$params[1]]) && !empty(self::$request[$params[1]]))
+                        self::$skip = true;
+                    break;
+                case 'empty_field':
+                    if (isset(self::$request[$params[1]]) && empty(self::$request[$params[1]]))
+                        self::$skip = true;
+                    break;
+                case 'field_set':
+                    if (isset(self::$request[$params[1]]))
+                        self::$skip = true;
+                    break;
+                case 'field_not_set':
+                    if (!isset(self::$request[$params[1]]))
+                        self::$skip = true;
+                    break;
+                case 'field_value':
+                    if (isset(self::$request[$params[1]]) && !empty(self::$request[$params[1]]) && self::$request[$params[1]] == $params[2])
+                        self::$skip = true;
+                    break;
+                case 'field_value_not':
+                    if (isset(self::$request[$params[1]]) && !empty(self::$request[$params[1]]) && self::$request[$params[1]] != $params[2])
+                        self::$skip = true;
+                    break;
+                default:
+                    if ($params[0] == $params[1])
+                        self::$skip = true;
+                    break;
+            }
         }
         return true;
     }
