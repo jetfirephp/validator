@@ -14,15 +14,11 @@ class Validator
     /**
      * @var
      */
-    private static $rules;
+    private static $rule;
     /**
      * @var
      */
     private static $params;
-    /**
-     * @var array
-     */
-    private static $response = [];
     /**
      * @var
      */
@@ -31,12 +27,19 @@ class Validator
      * @var
      */
     private static $customMessages;
-
     /**
      * @var array
      */
     private static $request = [];
-
+    /**
+     * @var array
+     */
+    private static $response = [];
+    /**
+     * @var
+     */
+    private static $rules = [];
+    
     /**
      * @description validate values
      * @param array $all
@@ -48,13 +51,12 @@ class Validator
         self::$customMessages = $customMessages;
         self::getValues($all);
         foreach ($all as $label => $rule) {
-            self::$rules = preg_split('/(\||\+)/', $rule);
+            self::$rule = preg_split('/(\||\+)/', $rule);
             self::$params = explode('|', $label);
             self::make();
         }
         return self::response();
     }
-
 
     /**
      * @description validate $_POST values
@@ -67,7 +69,7 @@ class Validator
         self::$customMessages = $customMessages;
         self::getValues($all,'post');
         foreach ($all as $label => $rule) {
-            self::$rules = preg_split('/(\||\+)/', $rule);
+            self::$rule = preg_split('/(\||\+)/', $rule);
             self::$params = explode('|', $label);
             self::make();
         }
@@ -85,7 +87,7 @@ class Validator
         self::$customMessages = $customMessages;
         self::getValues($all,'get');
         foreach ($all as $label => $rule) {
-            self::$rules = preg_split('/(\||\+)/', $rule);
+            self::$rule = preg_split('/(\||\+)/', $rule);
             self::$params = explode('|', $label);
             self::make();
         }
@@ -138,11 +140,15 @@ class Validator
             self::$skip = false;
             $key = strstr($param, '::', true);
             $param = (empty($key))?$param:$key;
-            foreach (self::$rules as $key2 => $rule) {
+            foreach (self::$rule as $key2 => $rule) {
                 if (self::$skip == true) break;
                 $exec = explode(':', $rule);
                 if (!empty($exec[1])) $parameters[$exec[0]] = $exec[1];
-                (empty($parameters[$exec[0]])) ? self::$exec[0]($param) : self::$exec[0]($param, $parameters);
+                if (isset(self::$rules[$exec[0]])) {
+                    $response = (empty($parameters[$exec[0]])) ? call_user_func_array(self::$rules[$exec[0]],[self::$request, $param]) : call_user_func_array(self::$rules[$exec[0]],[self::$request, $param, $parameters]);
+                    if(is_string($response)) self::$response[$param][$exec[0]] = $response;
+                }else
+                    (empty($parameters[$exec[0]])) ? self::$exec[0]($param) : self::$exec[0]($param, $parameters);
             }
         }
     }
@@ -164,7 +170,27 @@ class Validator
         return (!empty(self::$response)) ? ['valid' => false, 'status' => 'error', 'message' => self::$response] : ['valid' => true, 'status' => 'success', 'values' => self::$request];
     }
 
-    /*-----------------------------------------------------------------------*/
+
+    /**
+     * @param $rule
+     * @param $function
+     */
+    public static function addRule($rule,$function)
+    {
+        self::$rules[$rule] = $function;
+    }
+
+    /**
+     * @param $rules
+     */
+    public static function addRules($rules)
+    {
+        self::$rules = (is_array($rules)) ? $rules : include($rules) ;
+    }
+
+    /*|---------------------------------------------------------------------|
+      | Rules                                                               |
+      |---------------------------------------------------------------------|*/
 
     /**
      * @param $param
@@ -239,10 +265,9 @@ class Validator
      * @return bool|string
      */
     public static function max($param,$parameters){
-        if (!empty($parameters['max'])) {
-            if ((int)self::$request[$param] <= (int)$parameters['max'])return true;
-        }
-        return self::$response[$param]['max'] = '"' . $param . '" must be lower than "'.$parameters['max'].'"';
+        return (!empty($parameters['max']) && (int)self::$request[$param] <= (int)$parameters['max'])
+            ? true
+            : '"' . $param . '" must be lower than "'.$parameters['max'].'"';
     }
 
     /**
@@ -251,10 +276,9 @@ class Validator
      * @return bool|string
      */
     public static function min($param,$parameters){
-        if (!empty($parameters['min'])) {
-            if ((int)self::$request[$param] >= (int)$parameters['min'])return true;
-        }
-        return self::$response[$param]['min'] = '"' . $param . '" must be higher than "'.$parameters['min'].'"';
+        return (!empty($parameters['min']) && (int)self::$request[$param] <= (int)$parameters['min'])
+            ? true
+            : '"' . $param . '" must be higher than "'.$parameters['min'].'"';
     }
 
     /**

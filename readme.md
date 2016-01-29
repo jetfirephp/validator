@@ -92,7 +92,46 @@ $response = \JetFire\Validator\Validator::validatePost([
 ]);
 ```
 
-### Rules
+### Custom Rules
+
+You can create your own rules for validation like this :
+
+```php
+\JetFire\Validator\Validator::addRule('maximum', function($request,$param,$parameters = null){
+    return (!empty($parameters['maximum']) && (int)$request[$param] <= (int)$parameters['maximum']) 
+        ? true
+        : '"' . $param . '" must be lower than "'.$parameters['maximum'].'"';
+});
+
+$response = JetFire\Validator\Validator::validate([
+    'number::20'   => 'maximum:30'
+]);
+```
+
+`$request` contains all input values (You can get the current input value over $request[$param])
+`$param` is the input name
+`$parameters` contains the string after ':'
+
+Or you can define your rules in an array and pass it to `\JetFire\Validator\Validator::addRules()` :
+
+```php
+$rules = [
+    'maximum' => function($request,$param,$parameters = null){
+        return (!empty($parameters['maximum']) && (int)$request[$param] <= (int)$parameters['maximum']) 
+            ? true
+            : '"' . $param . '" must be lower than "'.$parameters['maximum'].'"';
+    },
+    'minimum' => function($request,$param,$parameters = null){
+        return (!empty($parameters['min']) && (int)self::$request[$param] <= (int)$parameters['min'])
+            ? true
+            : '"' . $param . '" must be higher than "'.$parameters['min'].'"';
+    },
+];
+
+\JetFire\Validator\Validator::addRules($rules);
+```
+
+### Available Rules
 
 Here are the list of available rules :
 
