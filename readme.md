@@ -44,12 +44,12 @@ if($response['valid']){
 }else{
     // $response['message'] return an array of messages for each value and rule
     // $response['message']['_field_']['_rule_']
-    // for example the first validation will return an error because 'Petet Parker 1' doesn't contain only letters
+    // for example the first validation will return an error because 'Petet Parker 1' doesn't contains only letters
     // to get the return message : $response['message']['Peter Parker 1']['alpha']
 }
 ```
 
-As you can see it's not very nice to set the value as a key.
+As you can see it's not very convenient to have value as a key to error messages.
 If you want to add a key for your values you have to add your key before the value, like this :
 
 ```php
@@ -87,7 +87,7 @@ You can set your custom messages for validation. You have to pass an array in se
 $response = \JetFire\Validator\Validator::validatePost([
     'firstName|lastName'               => 'alpha|length:<60',
 ],[
-    'alpha:firstName'                  => 'FirstName must contain only letters', // only applied for firstName not for lastName
+    'alpha:firstName'                  => 'FirstName must contains only letters', // only applied for firstName not for lastName
     'length'                           => ':field must not exceed 60 characters', // :field is replaced by field name (firstName or lastName) 
 ]);
 ```
@@ -109,7 +109,9 @@ $response = JetFire\Validator\Validator::validate([
 ```
 
 `$request` contains all input values (You can get the current input value over $request[$param])
+
 `$param` is the input name
+
 `$parameters` contains the string after ':'
 
 Or you can define your rules in an array and pass it to `\JetFire\Validator\Validator::addRules()` :
@@ -300,7 +302,7 @@ Validates if the input is equal to some value.
 
 #### values
 
-Validates if the input contain one of the following values. 
+Validates if the input contains one of the following values. 
 
 ```php
     'Peter' => 'values:Peter,Parker,Spiderman', // true
@@ -394,7 +396,7 @@ Check if the input is set and not empty
 
 #### requiredIf
  
-The field is required if it valid some condition
+The field is required if it validates some condition
 
 ```php
     // for $_POST & $_GET
@@ -455,7 +457,7 @@ The input is required with one of the following inputs
 
 #### with
 
-The input is optional but the followings input must not be empty
+The input is optional but the followings inputs must not be empty
 
 ```php
     'firstName1::Peter|lastName1::Parker' => '', 
@@ -483,7 +485,7 @@ The input is optional but one of the following input must not be empty
 
 #### optional
 
-The input is optional and the following rules are not execute if the input is empty
+The input is optional and the following rules are not executed if the input is empty
 
 ```php
     'firstName::' => 'optional|alpha|length:<20', // true
@@ -493,7 +495,7 @@ The input is optional and the following rules are not execute if the input is em
 
 #### optionalIf
 
-The input is optional if it valid some condition
+The input is optional if it validates some condition
 
 ```php
     'firstName::Peter' => '',
