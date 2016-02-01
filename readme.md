@@ -381,7 +381,7 @@ Validates if the input is set.
 
 ```php
     // for $_POST & $_GET
-    'firstName => 'set', // true
+    'firstName' => 'set', // true
     // php : if(isset($_POST['firstName'])) or if(isset($_GET['firstName'])) 
 ```
 
@@ -391,7 +391,7 @@ Check if the input is set and not empty
 
 ```php
     // for $_POST & $_GET
-    'firstName => 'required', // true
+    'firstName' => 'required', // true
 ```
 
 #### requiredIf
