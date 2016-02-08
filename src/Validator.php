@@ -141,14 +141,15 @@ class Validator
             $key = strstr($param, '::', true);
             $param = (empty($key))?$param:$key;
             foreach (self::$rule as $key2 => $rule) {
-                if (self::$skip == true) break;
+                if (self::$skip === true) break;
                 $exec = explode(':', $rule);
+                $parameters = [];
                 if (!empty($exec[1])) $parameters[$exec[0]] = $exec[1];
                 if (isset(self::$rules[$exec[0]])) {
-                    $response = (empty($parameters[$exec[0]])) ? call_user_func_array(self::$rules[$exec[0]],[self::$request, $param]) : call_user_func_array(self::$rules[$exec[0]],[self::$request, $param, $parameters]);
+                    $response = (!isset($parameters[$exec[0]])) ? call_user_func_array(self::$rules[$exec[0]],[self::$request, $param]) : call_user_func_array(self::$rules[$exec[0]],[self::$request, $param, $parameters]);
                     if(is_string($response)) self::$response[$param][$exec[0]] = $response;
                 }else
-                    (empty($parameters[$exec[0]])) ? self::$exec[0]($param) : self::$exec[0]($param, $parameters);
+                    (!isset($parameters[$exec[0]])) ? self::$exec[0]($param) : self::$exec[0]($param, $parameters);
             }
         }
     }
@@ -187,10 +188,6 @@ class Validator
     {
         self::$rules = (is_array($rules)) ? $rules : include($rules) ;
     }
-
-    /*|---------------------------------------------------------------------|
-      | Rules                                                               |
-      |---------------------------------------------------------------------|*/
 
     /**
      * @param $param
@@ -404,15 +401,14 @@ class Validator
         if (!empty($parameters['equal'])) {
             $params = explode(',', $parameters['equal']);
             if (count($params) > 1) {
-                switch($params[1]) {
-                    case 'password_verify' :
-                        if (password_verify(self::$request[$param], $params[0])) return true;
-                        else return self::$response[$param]['equal'] = '"' . $param . '" value is not equal to "' . $params[0] . '"';
-                    break;
-                    default :
-                        if ($params[1](self::$request[$param]) == $params[0]) return true;
-                        else return self::$response[$param]['equal'] = '"' . $param . '" value is not equal to "' . $params[0] . '"';
-                    break;
+                if($params[1] == 'password_verify'){
+                    return (password_verify(self::$request[$param], $params[0]))
+                        ? true
+                        : self::$response[$param]['equal'] = '"' . $param . '" value is not equal to "' . $params[0] . '"';
+                }else{
+                    return ($params[1](self::$request[$param]) == $params[0])
+                        ? true
+                        : self::$response[$param]['equal'] = '"' . $param . '" value is not equal to "' . $params[0] . '"';
                 }
             } else if (count($params) == 1)
                 if (self::$request[$param] == $parameters['equal']) return true;
@@ -586,9 +582,6 @@ class Validator
         return false;
     }
 
-    /*
-      |------------------------------------------------|
-     */
 
     /**
      * @description the input must be set
@@ -847,12 +840,6 @@ class Validator
         }
         return true;
     }
-
-    /*
-      |------------------------------------------------|
-      | Assignation and Overriding                     |
-      |------------------------------------------------|
-     */
 
     /**
      * @param $param
