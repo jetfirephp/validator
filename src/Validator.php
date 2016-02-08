@@ -42,7 +42,7 @@ class Validator
 
     /**
      * @param $key
-     * @return null
+     * @return null|array|string|int
      */
     private static function get($key){
         return isset($_GET[$key])?$_GET[$key]:null;
@@ -50,7 +50,7 @@ class Validator
 
     /**
      * @param $key
-     * @return null
+     * @return null|array|string|int
      */
     private static function post($key){
         return isset($_POST[$key])?$_POST[$key]:null;
@@ -58,7 +58,7 @@ class Validator
 
     /**
      * @param $key
-     * @return null
+     * @return null|array|string|int
      */
     private static function file($key){
         return isset($_FILES[$key])?$_FILES[$key]:null;
