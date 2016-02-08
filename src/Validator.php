@@ -39,6 +39,30 @@ class Validator
      * @var
      */
     private static $rules = [];
+
+    /**
+     * @param $key
+     * @return null
+     */
+    private static function get($key){
+        return isset($_GET[$key])?$_GET[$key]:null;
+    }
+
+    /**
+     * @param $key
+     * @return null
+     */
+    private static function post($key){
+        return isset($_POST[$key])?$_POST[$key]:null;
+    }
+
+    /**
+     * @param $key
+     * @return null
+     */
+    private static function file($key){
+        return isset($_FILES[$key])?$_FILES[$key]:null;
+    }
     
     /**
      * @description validate values
@@ -115,15 +139,15 @@ class Validator
                 foreach ($rules as $label => $rule) {
                     $params = explode('|', $label);
                     foreach ($params as $param)
-                        if (isset($_GET[$param])) self::$request[$param] = $_GET[$param];
+                        if (!is_null(self::get($param))) self::$request[$param] = self::get($param);
                 }
                 break;
             case 'post':
                 foreach ($rules as $label => $rule) {
                     $params = explode('|', $label);
                     foreach ($params as $param) {
-                        if (isset($_POST[$param])) self::$request[$param] = $_POST[$param];
-                        else if (!empty($_FILES[$param]['name'])) self::$request[$param] = $_FILES[$param];
+                        if (!is_null(self::post($param))) self::$request[$param] = self::post($param);
+                        else if (!is_null(self::file($param))) self::$request[$param] = self::file($param);
                     }
                 }
                 break;
@@ -977,9 +1001,9 @@ class Validator
         if(strpos($name, 'is') !== false) {
             $name = lcfirst(str_replace('is', '', $name));
             foreach ($params as $param) {
-                if (isset($_POST[$param]) && !empty($_POST[$param])) self::$request[$param] = $_POST[$param];
-                else if (!empty($_FILES[$param]['name'])) self::$request[$param] = $_FILES[$param];
-                else if (isset($_GET[$param]) && !empty($_GET[$param])) self::$request[$param] = $_GET[$param];
+                if (!is_null(self::post($param)) && self::post($param) != '') self::$request[$param] = self::post($param);
+                else if (!is_null(self::file($param))) self::$request[$param] = self::file($param);
+                else if (!is_null(self::get($param)) && self::get($param) != '') self::$request[$param] = self::get($param);
                 else self::$request[$param] = $param;
                 if (method_exists(get_class(),$name) && self::$name($param) !== true) return self::$response[$param];
             }
