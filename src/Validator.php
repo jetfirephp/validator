@@ -173,7 +173,7 @@ class Validator
                     $response = (!isset($parameters[$exec[0]])) ? call_user_func_array(self::$rules[$exec[0]],[self::$request, $param]) : call_user_func_array(self::$rules[$exec[0]],[self::$request, $param, $parameters]);
                     if(is_string($response)) self::$response[$param][$exec[0]] = $response;
                 }else
-                    (!isset($parameters[$exec[0]])) ? self::$exec[0]($param) : self::$exec[0]($param, $parameters);
+                    (!isset($parameters[$exec[0]])) ? call_user_func_array([__NAMESPACE__ .'\Validator',$exec[0]],[$param]) : call_user_func_array([__NAMESPACE__ .'\Validator',$exec[0]],[$param,$parameters]);
             }
         }
     }
