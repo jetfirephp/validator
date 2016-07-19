@@ -63,7 +63,7 @@ class Validator
     private static function file($key){
         return isset($_FILES[$key])?$_FILES[$key]:null;
     }
-    
+
     /**
      * @description validate values
      * @param array $all
@@ -386,7 +386,7 @@ class Validator
     public static function email($param)
     {
         if (filter_var(self::$request[$param], FILTER_VALIDATE_EMAIL)) return true;
-        return self::$response[$param]['mail'] = 'The e-mail address format is incorrect for "' . $param . '"';
+        return self::$response[$param]['email'] = 'The e-mail address format is incorrect for "' . $param . '"';
     }
 
     /**
