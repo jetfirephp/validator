@@ -345,6 +345,17 @@ class Validator
         }
         return self::$response[$param]['date'] = '"' . $param . '" is not a valid date';
     }
+    /**
+     * @param $param
+     * @param null $parameters
+     * @return bool
+     */
+    public static function datetime($param, $parameters = null)
+    {
+        if (!empty($parameters['datetime']))
+            return (DateTime::createFromFormat($parameters['datetime'], self::$request[$param]) !== false);
+        return (DateTime::createFromFormat('m/d/Y', self::$request[$param]) !== false);
+    }
 
     /**
      * @param $param
@@ -527,9 +538,9 @@ class Validator
      */
     public static function size($param, $parameters = null)
     {
-        if (!empty($parameters['size']) || is_string($param)) {
+        if (!empty($parameters['size'])) {
             $size = explode(',', $parameters['size']);
-            $image = is_string($param) ? filesize($param) : filesize(self::$request[$param]['tmp_name']);
+            $image = filesize(self::$request[$param]['tmp_name']);
             if (count($size) == 1) {
                 $operator = $size[0][0];
                 $value = substr($size[0], 1);
@@ -892,6 +903,7 @@ class Validator
     {
         if (!empty($parameters['assign'])) {
             $params = explode(',', $parameters['assign']);
+            if($params[0] == 'date') self::$request[$param] = new \DateTime($param);
             if (count($params) > 1) {
                 switch ($params[0]) {
                     case 'crypt':
@@ -956,6 +968,10 @@ class Validator
                 case 'empty_file':
                     if (empty(self::$request[$param]['name']))
                         self::$request[$param] = self::clean($params[1]);
+                    break;
+                case 'check_file':
+                    if (!isset(self::$request[$param]['name']) && isset($_FILES[$param]['name']))
+                        self::$request[$param] = $_FILES[$param];
                     break;
                 case 'empty_value':
                     if (empty(self::$request[$param]))
