@@ -520,17 +520,31 @@ class Validator
      * @param null $parameters
      * @return bool
      */
-    public static function mimes($param, $parameters = null)
+    public static function format($param, $parameters = null)
     {
-        if (!empty($parameters['mimes'])) {
+        if (!empty($parameters['format']) && isset(self::$request[$param]['name'])) {
             $extension = pathinfo(self::$request[$param]['name'], PATHINFO_EXTENSION);
-            if (in_array(strtolower($extension), explode(',', $parameters['mimes']))) {
+            if (in_array(strtolower($extension), explode(',', $parameters['format']))) {
                 return true;
             }
         }
-        return self::$response[$param]['mimes'] = '"' . $param . '" file format is incorrect';
+        return self::$response[$param]['format'] = '"' . $param . '" file format is incorrect';
     }
 
+    /**
+     * @param $param
+     * @param null $parameters
+     * @return bool
+     */
+    public static function mimes($param, $parameters = null)
+    {
+        if (!empty($parameters['mimes']) && isset(self::$request[$param]['type'])) {
+            $mime = self::$request[$param]['type'];
+            if (in_array($mime, explode(',', $parameters['mimes'])))
+                return true;
+        }
+        return self::$response[$param]['mimes'] = '"' . $param . '" file type is incorrect';
+    }
     /**
      * @param $param
      * @param null $parameters
