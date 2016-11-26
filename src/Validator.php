@@ -221,7 +221,7 @@ class Validator
     public static function regex($param, $parameters)
     {
         if (!empty($parameters['regex'])) {
-            return (preg_match($parameters['regex'], self::$request[$param]))
+            return (preg_match(str_replace('`OR`','|',$parameters['regex']), self::$request[$param]))
                 ? true
                 : self::$response[$param]['regex'] = '"' . $param . '"  must validate against "' . $parameters['regex'] . '"';
         }
