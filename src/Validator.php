@@ -870,7 +870,7 @@ class Validator
      */
     public function optional($param)
     {
-        if (isset($this->request[$param]) && !empty($this->request[$param])) return true;
+        if (isset($this->request[$param]) && !empty($this->request[$param]) && !is_array($this->request[$param])) return true;
         if (!empty($this->request[$param]['name'])) return true;
         $this->skip = true;
     }
