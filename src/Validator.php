@@ -614,8 +614,9 @@ class Validator
     {
         if (!empty($parameters['mimes']) && isset($this->request[$param]['type'])) {
             $mime = $this->request[$param]['type'];
-            if (in_array($mime, explode(',', $parameters['mimes'])))
+            if ($this->strposa($mime, explode(',', $parameters['mimes'])) !== false){
                 return true;
+            }
         }
         return $this->response[$param]['mimes'] = '"' . $param . '" file type is incorrect';
     }
@@ -1131,12 +1132,27 @@ class Validator
 
     /**
      * @param $value
-     * @return string
+     * @return array
      */
     private function clean($value)
     {
-        if (!is_array($value))
-            return htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
-        return $value;
+        return (!is_array($value))
+            ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false)
+            : $value;
+    }
+
+    /**
+     * @param $haystack
+     * @param $needle
+     * @param int $offset
+     * @return bool
+     */
+    private function strposa($haystack, $needle, $offset=0)
+    {
+        if(!is_array($needle)) $needle = array($needle);
+        foreach($needle as $query) {
+            if(strpos($haystack, $query, $offset) !== false) return true; // stop on first true result
+        }
+        return false;
     }
 }
