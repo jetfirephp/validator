@@ -412,7 +412,7 @@ class Validator
             if (in_array($parameters['date'], array_keys($exceptionalFormats))) {
                 $parameters['date'] = $exceptionalFormats[$parameters['date']];
             }
-            $dateFromFormat = DateTime::createFromFormat($parameters['datetime'], $this->request[$param]);
+            $dateFromFormat = DateTime::createFromFormat($parameters['date'], $this->request[$param]);
             if ($dateFromFormat && $this->request[$param] === $dateFromFormat->format($parameters['date'])) return true;
         }
         return $this->response[$param]['date'] = '"' . $param . '" is not a valid date';
@@ -425,9 +425,9 @@ class Validator
      */
     public function datetime($param, $parameters = null)
     {
-        if (!empty($parameters['datetime']))
-            return (DateTime::createFromFormat($parameters['datetime'], $this->request[$param]) !== false);
-        return (DateTime::createFromFormat('m/d/Y', $this->request[$param]) !== false);
+        return (!empty($parameters['datetime']))
+            ? (DateTime::createFromFormat($parameters['datetime'], $this->request[$param]) !== false)
+            : (DateTime::createFromFormat('m/d/Y', $this->request[$param]) !== false);
     }
 
     /**
