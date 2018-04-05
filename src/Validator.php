@@ -202,16 +202,20 @@ class Validator
             case 'get':
                 foreach ($rules as $label => $rule) {
                     $params = explode('|', $label);
-                    foreach ($params as $param)
-                        if (!is_null($this->get($param))) $this->request[$param] = $this->get($param);
+                    foreach ($params as $param) {
+                        $get = $this->get($param);
+                        if (!is_null($get)) $this->request[$param] = $get;
+                    }
                 }
                 break;
             case 'post':
                 foreach ($rules as $label => $rule) {
                     $params = explode('|', $label);
                     foreach ($params as $param) {
-                        if (!is_null($this->post($param))) $this->request[$param] = $this->post($param);
-                        else if (!is_null($this->file($param))) $this->request[$param] = $this->file($param);
+                        $post = $this->post($param);
+                        $file = $this->file($param);
+                        if (!is_null($post)) $this->request[$param] = $post;
+                        else if (!is_null($file)) $this->request[$param] = $file;
                     }
                 }
                 break;
@@ -728,8 +732,8 @@ class Validator
      */
     public function required($param)
     {
-        if (isset($this->request[$param]) && !empty($this->request[$param])) return true;
-        else if (!empty($this->request[$param]['name'])) return true;
+        if (isset($this->request[$param]) && !empty($this->request[$param]) && !isset($_FILES[$param])) return true;
+        else if (isset($_FILES[$param]['name']) && !empty($this->request[$param]['name'])) return true;
         return $this->response[$param]['required'] = '"' . $param . '" is required';
     }
 
@@ -798,7 +802,7 @@ class Validator
             if (!empty($parameters['requiredWith'])) {
                 $params = explode(',', $parameters['requiredWith']);
                 foreach ($params as $field) {
-                    if (!isset($this->request[$field]) || empty($this->request[$field]))
+                    if (!isset($this->request[$field]) || empty($this->request[$field]) || (isset($_FILES[$field]['name']) && empty($_FILES[$field]['name'])))
                         return $this->response[$param]['requiredWith'] = 'All of the following input(s) must not be empty : ' . $parameters['requiredWith'];
                 }
                 return true;
@@ -818,8 +822,10 @@ class Validator
         if (isset($this->request[$param]) && !empty($this->request[$param])) {
             if (!empty($parameters['requiredOneOf'])) {
                 $params = explode(',', $parameters['requiredOneOf']);
-                foreach ($params as $field)
-                    if (isset($this->request[$field]) && !empty($this->request[$field])) return true;
+                foreach ($params as $field) {
+                    if (isset($this->request[$field]) && !empty($this->request[$field]) && !isset($_FILES[$field])) return true;
+                    else if (isset($_FILES[$field]['name']) && !empty($this->request[$field]['name'])) return true;
+                }
                 return $this->response[$param]['requiredOneOf'] = 'At least one of the following input(s) must not be empty : ' . $parameters['requiredOneOf'];
             }
         }
@@ -838,7 +844,7 @@ class Validator
             if (!empty($parameters['with'])) {
                 $params = explode(',', $parameters['with']);
                 foreach ($params as $field)
-                    if (!isset($this->request[$field]) || empty($this->request[$field]))
+                    if (!isset($this->request[$field]) || empty($this->request[$field]) || (isset($_FILES[$field]['name']) && empty($_FILES[$field]['name'])))
                         return $this->response[$param]['with'] = 'All of the following input(s) must not be empty : ' . $parameters['with'];
             }
         }
@@ -856,8 +862,10 @@ class Validator
         if (isset($this->request[$param]) && !empty($this->request[$param])) {
             if (!empty($parameters['oneOf'])) {
                 $params = explode(',', $parameters['oneOf']);
-                foreach ($params as $field)
-                    if (isset($this->request[$field]) && !empty($this->request[$field])) return true;
+                foreach ($params as $field) {
+                    if (isset($this->request[$field]) && !empty($this->request[$field]) && !isset($_FILES[$field])) return true;
+                    else if (isset($_FILES[$field]['name']) && !empty($this->request[$field]['name'])) return true;
+                }
                 return $this->response[$param]['oneOf'] = 'At least one of the following input must not be empty : ' . $parameters['oneOf'];
             }
         }
