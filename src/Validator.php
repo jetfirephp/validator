@@ -177,7 +177,8 @@ class Validator
     /**
      * @param $values
      */
-    private function setValues($values){
+    private function setValues($values)
+    {
         foreach ($values as $key => $value)
             if (!is_null($this->get($key))) $this->request[$key] = $value;
     }
@@ -254,17 +255,21 @@ class Validator
     {
         if (!is_null($this->customMessages)) {
             $messages = $this->customMessages;
-            foreach ($this->response as $field => $rules)
-                foreach ($rules as $rule => $message)
-                    if (isset($messages[$rule . ':' . $field]))
+            foreach ($this->response as $field => $rules) {
+                foreach ($rules as $rule => $message) {
+                    if (isset($messages[$rule . ':' . $field])) {
                         $this->response[$field][$rule] = str_replace(':field', '"' . $field . '"', $messages[$rule . ':' . $field]);
-                    else if (isset($messages[$rule]))
+                    } else if (isset($messages[$rule])) {
                         $this->response[$field][$rule] = str_replace(':field', '"' . $field . '"', $messages[$rule]);
+                    }
+                }
+            }
         }
         if (!empty($this->response)) return ['valid' => false, 'status' => 'error', 'message' => $this->response];
         else {
-            foreach ($this->request as $key => $message)
+            foreach ($this->request as $key => $message) {
                 $this->setRecursive($this->request, $key, $message);
+            }
             return ['valid' => true, 'status' => 'success', 'values' => $this->request];
         }
     }
@@ -618,7 +623,7 @@ class Validator
     {
         if (!empty($parameters['mimes']) && isset($this->request[$param]['type'])) {
             $mime = $this->request[$param]['type'];
-            if ($this->strposa($mime, explode(',', $parameters['mimes'])) !== false){
+            if ($this->strposa($mime, explode(',', $parameters['mimes'])) !== false) {
                 return true;
             }
         }
@@ -728,13 +733,14 @@ class Validator
     /**
      * @description the input must be set and not empty
      * @param $param
+     * @param string $key
      * @return array|bool
      */
-    public function required($param)
+    public function required($param, $key = 'required')
     {
         if (isset($this->request[$param]) && !empty($this->request[$param]) && !isset($_FILES[$param])) return true;
         else if (isset($_FILES[$param]['name']) && !empty($this->request[$param]['name'])) return true;
-        return $this->response[$param]['required'] = '"' . $param . '" is required';
+        return $this->response[$param][$key] = '"' . $param . '" is required';
     }
 
     /**
@@ -749,41 +755,47 @@ class Validator
             $params = explode(',', $parameters['requiredIf']);
             switch ($params[0]) {
                 case 'field':
-                    foreach ($params as $key => $value)
-                        if ($key > 0)
-                            if (isset($this->request[$value]) && !empty($this->request[$value]))
-                                return $this->required($param);
+                    foreach ($params as $key => $value) {
+                        if ($key > 0 && ((isset($_FILES[$value]['name']) && !empty($_FILES[$value]['name'])) || (isset($this->request[$value]) && !empty($this->request[$value]) && !isset($_FILES[$value])))) {
+                            return $this->required($param, 'requiredIf');
+                        }
+                    }
                     break;
                 case 'empty_field':
-                    foreach ($params as $key => $value)
-                        if ($key > 0) {
-                            if (isset($this->request[$value]) && empty($this->request[$value]))
-                                return $this->required($param);
+                    foreach ($params as $key => $value) {
+                        if ($key > 0 && ((isset($this->request[$value]) && empty($this->request[$value])) || (isset($_FILES[$value]) && empty($_FILES[$value]['name'])))) {
+                            return $this->required($param, 'requiredIf');
                         }
+                    }
                     break;
                 case 'field_set':
-                    foreach ($params as $key => $value)
-                        if ($key > 0)
-                            if (isset($this->request[$value]))
-                                return $this->required($param);
+                    foreach ($params as $key => $value) {
+                        if ($key > 0 && isset($this->request[$value])) {
+                            return $this->required($param, 'requiredIf');
+                        }
+                    }
                     break;
                 case 'field_not_set':
-                    foreach ($params as $key => $value)
-                        if ($key > 0)
-                            if (!isset($this->request[$value]))
-                                return $this->required($param);
+                    foreach ($params as $key => $value) {
+                        if ($key > 0 && !isset($this->request[$value])) {
+                            return $this->required($param, 'requiredIf');
+                        }
+                    }
                     break;
                 case 'field_value':
-                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[2])
-                        return $this->required($param);
+                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[2]) {
+                        return $this->required($param, 'requiredIf');
+                    }
                     break;
                 case 'field_value_not':
-                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] != $params[2])
-                        return $this->required($param);
+                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] != $params[2]) {
+                        return $this->required($param, 'requiredIf');
+                    }
                     break;
                 default:
-                    if ($params[0] == $params[1])
-                        return $this->required($param);
+                    if ($params[0] == $params[1]) {
+                        return $this->required($param, 'requiredIf');
+                    }
                     break;
             }
         }
@@ -1155,11 +1167,11 @@ class Validator
      * @param int $offset
      * @return bool
      */
-    private function strposa($haystack, $needle, $offset=0)
+    private function strposa($haystack, $needle, $offset = 0)
     {
-        if(!is_array($needle)) $needle = array($needle);
-        foreach($needle as $query) {
-            if(strpos($haystack, $query, $offset) !== false) return true; // stop on first true result
+        if (!is_array($needle)) $needle = array($needle);
+        foreach ($needle as $query) {
+            if (strpos($haystack, $query, $offset) !== false) return true; // stop on first true result
         }
         return false;
     }
