@@ -19,5 +19,5 @@
             "JetFire\\Validator\\": "src/"
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "stable"
 }
