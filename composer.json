@@ -18,6 +18,5 @@
         "psr-4":{
             "JetFire\\Validator\\": "src/"
         }
-    },
-    "minimum-stability": "stable"
+    }
 }
