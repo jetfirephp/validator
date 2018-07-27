@@ -783,14 +783,22 @@ class Validator
                     }
                     break;
                 case 'field_value':
-                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[2]) {
-                        return $this->required($param, 'requiredIf');
+                    $required = false;
+                    for ($i = 2; $i < count($params); ++$i) {
+                        if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[$i]) {
+                            $required = true;
+                        }
                     }
+                    if($required) return $this->required($param, 'requiredIf');
                     break;
                 case 'field_value_not':
-                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] != $params[2]) {
-                        return $this->required($param, 'requiredIf');
+                    $required = true;
+                    for ($i = 2; $i < count($params); ++$i) {
+                        if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[$i]) {
+                            $required = false;
+                        }
                     }
+                    if($required) return $this->required($param, 'requiredIf');
                     break;
                 default:
                     if ($params[0] == $params[1]) {
@@ -925,12 +933,22 @@ class Validator
                         return $this->optional($param);
                     break;
                 case 'field_value':
-                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[2])
-                        return $this->optional($param);
+                    $optional = false;
+                    for ($i = 2; $i < count($params); ++$i) {
+                        if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[$i]) {
+                            $optional = true;
+                        }
+                    }
+                    if($optional) return $this->optional($param);
                     break;
                 case 'field_value_not':
-                    if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] != $params[2])
-                        return $this->optional($param);
+                    $optional = true;
+                    for ($i = 2; $i < count($params); ++$i) {
+                        if (isset($this->request[$params[1]]) && !empty($this->request[$params[1]]) && $this->request[$params[1]] == $params[$i]) {
+                            $optional = false;
+                        }
+                    }
+                    if($optional) return $this->optional($param);
                     break;
                 default:
                     if ($params[0] == $params[1])
